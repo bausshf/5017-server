@@ -1,0 +1,14 @@
+{
+    "name": "conquer-online-5017",
+    "description": "A Conquer Online server (path 5017) written in D.",
+    "authors": ["Jacob Jensen"],
+    "homepage": "",
+    "license": "",
+    "dependencies": {
+      "vibe-d": "~>0.7.28",
+      "mysql-native": "~>0.1.4"
+    },
+    "versions": ["VibeDefaultMain", "AUTH_SERVER"],
+    "sourcePaths": ["..\\auth", "..\\world", "shared"],
+    "targetType": "executable"
+}
