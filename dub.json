@@ -10,6 +10,6 @@
       "cheetah": "~>0.2.3"
     },
     "versions": ["VibeDefaultMain", "AUTH_SERVER"],
-    "sourcePaths": ["..\\auth", "..\\world", "..\\database", "shared"],
+    "sourcePaths": ["src"],
     "targetType": "executable"
 }
