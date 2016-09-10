@@ -1,3 +1,5 @@
+![Build-Status](https://travis-ci.org/ConquerOnlinePServer/5017-server.svg?branch=master)
+
 # 5017-server
 A Conquer Online private server project based on patch 5017, written in D.
 
