@@ -10,7 +10,7 @@ import conquer.network.server : Client;
 void onConnect(SocketEventArgs!Client e) {
   logInfo("A client has connected ...");
 
-  e.client.data = new Client;
+  e.client.data = new Client(e.client);
 }
 
 /// Handling disconnections
