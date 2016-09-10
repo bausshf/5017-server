@@ -6,7 +6,8 @@
     "license": "",
     "dependencies": {
       "vibe-d": "~>0.7.28",
-      "mysql-native": "~>0.1.4"
+      "mysql-native": "~>0.1.4",
+      "cheetah": "~>0.2.3"
     },
     "versions": ["VibeDefaultMain", "AUTH_SERVER"],
     "sourcePaths": ["..\\auth", "..\\world", "shared"],
