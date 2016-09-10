@@ -13,19 +13,19 @@ version (AUTH_SERVER) {
   /// The port of the auth server.
   private shared ushort serverPort = 9958;
 
-  import conquer.auth.network.authclient : AuthClient;
+  public import conquer.auth.network.authclient : AuthClient;
 
   /// Alias for the client.
-  package(conquer.network) alias Client = AuthClient;
+  public alias Client = AuthClient;
 }
 else version (WORLD_SERVER) {
   /// The port of the world server.
   private shared ushort serverPort = 5817;
 
-  import conquer.auth.network.gameclient : GameClient;
+  public import conquer.auth.network.gameclient : GameClient;
 
   /// Alias for the client.
-  package(conquer.network) alias Client = GameClient;
+  public alias Client = GameClient;
 }
 
 /**
@@ -49,6 +49,6 @@ void openServer(void function() onRun) {
   if (onRun) {
     onRun();
   }
-  
+
   server.start();
 }

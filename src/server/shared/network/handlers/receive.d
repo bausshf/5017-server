@@ -37,11 +37,14 @@ void onReceiveBody(SocketEventArgs!Client e) {
 
     client.data.crypto.decrypt(buffer);
 
-    import std.conv : to;
-    logInfo("Size: " ~ to!string(client.data.packetSize) ~ " Type: " ~ to!string(client.data.packetType));
-    logInfo(to!string(e.buffer[0 .. client.data.packetSize]));
+    version (AUTH_SERVER) {
+      import conquer.auth.network.packethandler : handlePacket;
+    }
+    else version (WORLD_SEVER) {
+      import conquer.auth.network.packethandler : handlePacket;
+    }
 
-    // TODO: handlePacket(client.data, client.data.packetType, buffer);
+    handlePacket(client.data, client.data.packetType, e.buffer[0 .. client.data.packetSize]);
 
     e.resetReceive(e.currentReceiveAmount - client.data.packetSize);
     client.moveNext(SocketEventType.receive);
