@@ -1,4 +1,4 @@
-module conquer.core.math;
+module conquer.core.mathematics;
 
 import std.traits : isNumeric;
 

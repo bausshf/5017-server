@@ -14,12 +14,18 @@ import conquer.database.engine.databasemodel;
 /// Alias for Variant to give the name more meaning.
 alias DbParam = Variant;
 
+/// The connection string format.
 private enum connectionStringFormat = "host=%s;port=3306;user=%s;pwd=%s;db=%s";
 
 // TODO: Load from config ...
+/// The auth db connection string.
 private enum _authDbConnectionString = connectionStringFormat.format("127.0.0.1", "root", "1234", "cq_auth");
 
-private string _worldDbConnectionString = connectionStringFormat.format("127.0.0.1", "root", "1234", "cq_world");
+/// The world db connection string.
+private enum _worldDbConnectionString = connectionStringFormat.format("127.0.0.1", "root", "1234", "cq_world");
+
+/// The log db connection string.
+private enum _logDbConnectionString = connectionStringFormat.format("127.0.0.1", "root", "1234", "cq_log");
 
 version (AUTH_SERVER) {
   private alias _defaultConnectionString = _authDbConnectionString;
@@ -38,7 +44,33 @@ else version (WORLD_SERVER) {
   auto worldDbConnectionString() {
     return _worldDbConnectionString;
   }
+
+  /// Gets the connection string to log db.
+  auto logDbConnectionString() {
+    return _logDbConnectionString;
+  }
 }
+
+/// CTFE string for mixin MySql connection setup.
+private enum MySqlConnectionSetup = q{
+	// Setup connection string ...
+	if (!connectionString) {
+		connectionString = _defaultConnectionString;
+	}
+
+	// Setup MySql connection ...
+	import mysql.db;
+	auto mdb = new MysqlDB(connectionString);
+	auto c = mdb.lockConnection();
+	scope(exit) c.close();
+
+	// Prepare the command ...
+	auto cmd = new Command(c, sql);
+	cmd.prepare();
+
+	// Binds the parameters ...
+	cmd.bindParameters(params);
+};
 
 /**
 *	Executes an sql statement.
@@ -50,27 +82,13 @@ else version (WORLD_SERVER) {
 *		The amount of rows affected.
 */
 ulong execute(string sql, DbParam[] params, string connectionString = null) {
-  // Setup connection string ...
-  if (!connectionString) {
-    connectionString = _defaultConnectionString;
-  }
-
-  // Setup MySql connection ...
-  import mysql.db;
-  auto mdb = new MysqlDB(connectionString);
-  auto c = mdb.lockConnection();
-  scope(exit) c.close();
-
-  // Prepare the command ...
-  auto cmd = new Command(c, sql);
-  cmd.prepare();
-
-  // Binds the parameters ...
-  cmd.bindParameters(params);
+  // Setsup the mysql connection
+  mixin(MySqlConnectionSetup);
 
   // Executes the statement ...
   ulong affectedRows;
   cmd.execPrepared(affectedRows);
+
   return affectedRows;
 }
 
@@ -84,23 +102,8 @@ ulong execute(string sql, DbParam[] params, string connectionString = null) {
 *		The value of the statement.
 */
 T scalar(T)(string sql, DbParam[] params, string connectionString = null) {
-  // Setup connection string ...
-  if (!connectionString) {
-    connectionString = _defaultConnectionString;
-  }
-
-  // Setup MySql connection ...
-  import mysql.db;
-  auto mdb = new MysqlDB(connectionString);
-  auto c = mdb.lockConnection();
-  scope(exit) c.close();
-
-  // Prepare the command ...
-  auto cmd = new Command(c, sql);
-  cmd.prepare();
-
-  // Binds the parameters ...
-  cmd.bindParameters(params);
+  // Setsup the mysql connection
+  mixin(MySqlConnectionSetup);
 
   // Executes the statement ...
   auto rows = cmd.execPreparedResult();
@@ -115,6 +118,25 @@ T scalar(T)(string sql, DbParam[] params, string connectionString = null) {
 }
 
 /**
+*	Validates whether a row is selected from the query or not.
+*	Params:
+*		sql =				The sql query.
+*		params = 			The parameters.
+*		connectionString =	The connection string (Will default to auth or world db)
+*	Returns:
+*		True if the row exists, false otherwise.
+*/
+bool exists(string sql, DbParam[] params, string connectionString = null) {
+  mixin(MySqlConnectionSetup);
+
+  // Executes the statement ...
+  auto rows = cmd.execPreparedResult();
+
+  // Checks whether there's a result ...
+  return cast(bool)rows.length;
+}
+
+/**
 *	Executes a single sql read.
 *	Params:
 *		sql =				The sql query.
@@ -123,24 +145,9 @@ T scalar(T)(string sql, DbParam[] params, string connectionString = null) {
 *	Returns:
 *		The model of the first row read.
 */
-T readSingle(T : DatabaseModel)(string sql, DbParam[] params, string connectionString = null) {
-  // Setup connection string ...
-  if (!connectionString) {
-    connectionString = _defaultConnectionString;
-  }
-
-  // Setup MySql connection ...
-  import mysql.db;
-  auto mdb = new MysqlDB(connectionString);
-  auto c = mdb.lockConnection();
-  scope(exit) c.close();
-
-  // Prepare the command ...
-  auto cmd = new Command(c, sql);
-  cmd.prepare();
-
-  // Binds the parameters ...
-  cmd.bindParameters(params);
+T readSingle(T : IDatabaseModel)(string sql, DbParam[] params, string connectionString = null) {
+  // Setsup the mysql connection
+  mixin(MySqlConnectionSetup);
 
   // Executes the statement ...
   auto rows = cmd.execPreparedResult();
@@ -165,24 +172,9 @@ T readSingle(T : DatabaseModel)(string sql, DbParam[] params, string connectionS
 *	Returns:
 *		A range filled models with the rows returned by the sql read.
 */
-auto readMany(T : DatabaseModel)(string sql, DbParam[] params, string connectionString = null) {
-  // Setup connection string ...
-  if (!connectionString) {
-    connectionString = _defaultConnectionString;
-  }
-
-  // Setup MySql connection ...
-  import mysql.db;
-  auto mdb = new MysqlDB(connectionString);
-  auto c = mdb.lockConnection();
-  scope(exit) c.close();
-
-  // Prepare the command ...
-  auto cmd = new Command(c, sql);
-  cmd.prepare();
-
-  // Binds the parameters ...
-  cmd.bindParameters(params);
+auto readMany(T : IDatabaseModel)(string sql, DbParam[] params, string connectionString = null) {
+  // Setsup the mysql connection
+  mixin(MySqlConnectionSetup);
 
   // Executes the statement ...
   return cmd.execPreparedResult().map!((row) {
