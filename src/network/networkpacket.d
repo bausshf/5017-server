@@ -2,7 +2,8 @@ module conquer.network.networkpacket;
 
 import std.array : replace;
 
-import conquer.core : max;
+import conquer.core.mathematics : max;
+import conquer.errors;
 
 /// Wrapper around a network packet.
 class NetworkPacket {
@@ -43,6 +44,8 @@ class NetworkPacket {
   *   type =  The type.
   */
   this(ushort size, ushort type) {
+    _buffer = new ubyte[size];
+
     write(size);
     write(type);
   }
@@ -57,11 +60,20 @@ class NetworkPacket {
   * Returns: The value.
   */
   auto read(T)() {
-    auto value = (*cast(T*)(_buffer.ptr + _readOffset));
+    if (_readOffset >= _buffer.length) {
+      throw new OutOfRangeException(_buffer.stringof, _readOffset);
+    }
 
-    _readOffset += T.sizeof;
+    static if (is(T == bool)) {
+      return read!ubyte > 0;
+    }
+    else {
+      auto value = (*cast(T*)(_buffer.ptr + _readOffset));
 
-    return value;
+      _readOffset += T.sizeof;
+
+      return value;
+    }
   }
 
   /*
@@ -72,7 +84,10 @@ class NetworkPacket {
   */
   auto read(T)(size_t offset) {
     static if (is(T == bool)) {
-      return read!ubyte > 0;
+      return read!ubyte(offset) > 0;
+    }
+    else static if (is(T == string)) {
+      return readStringOffset(offset);
     }
     else {
       return (*cast(T*)(_buffer.ptr + offset));
@@ -86,11 +101,13 @@ class NetworkPacket {
   * Returns: The buffer.
   */
   auto readBuffer(size_t size) {
-    if ((_readOffset + size) > _buffer.length) {
-      throw new Exception("Out of range ...");
+    auto index = _readOffset + size;
+
+    if (index > _buffer.length) {
+      throw new OutOfRangeException(_buffer.stringof, index);
     }
 
-    auto value = _buffer[_readOffset .. _readOffset + size];
+    auto value = _buffer[_readOffset .. index];
     _readOffset += size;
     return value;
   }
@@ -103,11 +120,13 @@ class NetworkPacket {
   * Returns: The buffer.
   */
   auto readBuffer(size_t size, size_t offset) {
-    if ((offset + size) > _buffer.length) {
-      throw new Exception("Out of range ...");
+    auto index = offset + size;
+
+    if (index > _buffer.length) {
+      throw new OutOfRangeException(_buffer.stringof, index);
     }
 
-    return _buffer[offset .. offset + size];
+    return _buffer[offset .. index];
   }
 
   /**
@@ -223,7 +242,7 @@ class NetworkPacket {
   */
   void write(T)(T value, size_t offset) {
     if (offset >= _buffer.length) {
-      return;
+      throw new OutOfRangeException(_buffer.stringof, offset);
     }
 
     (*cast(T*)(_buffer.ptr + offset)) = value;
@@ -316,6 +335,21 @@ class NetworkPacket {
     }
   }
 
+  /**
+  * Writes empty bytes until a specific offset.
+  * Params:
+  *   offset = The offset to reach.
+  */
+  void writeUntil(size_t offset) {
+    if (offset < _writeOffset) {
+      throw new OutOfRangeException(_buffer.stringof, offset);
+    }
+
+    while (_writeOffset < offset) {
+      write!ubyte(0);
+    }
+  }
+
   /// Resets the read offset.
   void resetRead() {
     _readOffset = 0;
@@ -333,7 +367,7 @@ class NetworkPacket {
   */
   void seekRead(size_t newOffset) {
     if (newOffset < 0 || newOffset > _buffer.length) {
-      throw new Exception("Out of range ..."); // TODO: better exception type.
+      throw new OutOfRangeException(_buffer.stringof, newOffset);
     }
 
     _readOffset = newOffset;
@@ -346,14 +380,14 @@ class NetworkPacket {
   */
   void seekWrite(size_t newOffset) {
     if (newOffset < 0 || newOffset > _buffer.length) {
-      throw new Exception("Out of range ..."); // TODO: better exception type.
+      throw new OutOfRangeException(_buffer.stringof, newOffset);
     }
 
     _writeOffset = newOffset;
   }
 
   /// Finalizes the buffer.
-  auto finalize() {
+  @property ubyte[] finalize() {
     if (_writeOffset > 0 && _buffer.length > _writeOffset) {
       _buffer = _buffer[0 .. _writeOffset];
     }

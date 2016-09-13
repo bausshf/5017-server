@@ -1,10 +1,15 @@
 module conquer.auth.network.packets.authlogin;
 
-import conquer.network;
+import conquer.network : AuthClient, NetworkPacket;
 import conquer.security : decryptRc5;
+import conquer.database : authenticate, getServer, updateLogin;
+import conquer.enums;
+import conquer.auth.network.packets.authresponse;
+import conquer.core : playerIds;
 
 /// Packet: AuthLogin - 1051
-class AuthLogin : NetworkPacket {
+final class AuthLogin : NetworkPacket {
+  final:
   private:
   /// The account.
   string _account;
@@ -48,19 +53,18 @@ class AuthLogin : NetworkPacket {
   */
   void handle(AuthClient client, ubyte[] buffer) {
     auto packet = new AuthLogin(buffer);
+    uint accountId;
+    auto status = authenticate(packet.account, packet.password, accountId);
+    auto server = getServer(packet.server);
 
-    import vibe.d : logInfo;
-
-    import conquer.database : getAccount;
-    auto account = getAccount(packet.account);
-
-    // TODO: hash password ...
-    // TODO: send response back to client ...
-    if (account && account.password == packet.password) {
-      logInfo("LOGIN_OK");
+    if (status != AuthStatus.ready || !server) {
+      client.send(new AuthResponse(1000000, status, "10.0.0.0", 9001));
+      return;
     }
-    else {
-      logInfo("LOGIN_INVALID");
-    }
+
+    auto clientId = playerIds.get();
+    updateLogin(accountId, server.id, clientId);
+
+    client.send(new AuthResponse(clientId, status, server.ip, server.port));
   }
 }
