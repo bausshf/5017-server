@@ -1,24 +1,23 @@
-module conquer.auth.network.authclient;
+module conquer.world.network.gameclient;
 
 import cheetah;
 
-import conquer.security : ServerCryptographer;
 import conquer.network : NetworkPacket, NetworkClient;
 
-/// Wrapper for the auht client.
-class AuthClient : NetworkClient {
+/// Wrapper for the game client.
+class GameClient : NetworkClient {
   private:
   /// The socket client.
-  SocketClient!AuthClient _socketClient;
+  SocketClient!GameClient _socketClient;
 
   public:
   /**
-  * Creates a new auth client.
+  * Creates a new game client.
   * Params:
   *   socketClient =  The associated socket client.
   */
-  this(SocketClient!AuthClient socketClient) {
-    crypto = new ServerCryptographer;
+  this(SocketClient!GameClient socketClient) {
+    // crypto = new ServerCryptographer;
     _socketClient = socketClient;
   }
 

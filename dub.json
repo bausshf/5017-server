@@ -9,7 +9,18 @@
       "mysql-native": "~>0.1.4",
       "cheetah": "~>0.2.4"
     },
-    "versions": ["VibeDefaultMain", "AUTH_SERVER"],
+    "versions": ["VibeDefaultMain"],
     "sourcePaths": ["src"],
-    "targetType": "executable"
+    "targetType": "executable",
+    "configurations": [{
+      "name": "auth",
+      "targetName": "conquer-online-5017-auth",
+      "versions": ["AUTH_SERVER"],
+      "excludedSourceFiles": ["src\\world\\*"]
+    }, {
+      "name": "world",
+      "targetName": "conquer-online-5017-world",
+      "versions": ["WORLD_SERVER"],
+      "excludedSourceFiles": ["src\\auth\\*"]
+    }]
 }

@@ -38,10 +38,10 @@ void onReceiveBody(SocketEventArgs!Client e) {
     client.data.crypto.decrypt(buffer);
 
     version (AUTH_SERVER) {
-      import conquer.auth.network.packethandler : handlePacket;
+      import conquer.auth.network : handlePacket;
     }
-    else version (WORLD_SEVER) {
-      import conquer.auth.network.packethandler : handlePacket;
+    else version (WORLD_SERVER) {
+      import conquer.world.network : handlePacket;
     }
 
     handlePacket(client.data, client.data.packetType, e.buffer[0 .. client.data.packetSize]);

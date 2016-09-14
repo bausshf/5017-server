@@ -10,7 +10,7 @@ import conquer.enums;
 *   accountName = The account name.
 * Returns: The database record model.
 */
-auto getAccount(string accountName) {
+auto getAccount(inout(string) accountName) {
   enum sql = "SELECT * FROM `cq_accounts` WHERE `account` = ?";
   auto params = getParams(1);
   params[0] = accountName;
@@ -24,7 +24,7 @@ auto getAccount(string accountName) {
 *   accountName = The account name.
 *   password = The password.
 */
-auto authenticate(string accountName, string password, out uint accountId) {
+auto authenticate(inout(string) accountName, inout(string) password, out uint accountId) {
   auto account = getAccount(accountName);
   accountId = 0;
 

@@ -8,6 +8,7 @@ public {
     import conquer.security.auth;
   }
   else version (WORLD_SERVER) {
-    import conquer.security.world;
+    // import conquer.security.world;
+    // TODO: out-comment this when writing world cryptography
   }
 }
