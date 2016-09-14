@@ -11,15 +11,16 @@ private DbServer[string] _serverCache;
 *   serverName = The server name.
 * Returns: The database record model.
 */
-auto getServer(string serverName) {
+auto getServer(inout(string) serverName) {
   if (serverName in _serverCache) {
     return _serverCache[serverName];
   }
 
+  enum sql = "SELECT * FROM `cq_servers` WHERE `name` = ?";
   auto params = getParams(1);
   params[0] = serverName;
 
-  auto server = MySql.readSingle!DbServer("SELECT * FROM `cq_servers` WHERE `name` = ?", params);
+  auto server = MySql.readSingle!DbServer(sql, params);
 
   _serverCache[serverName] = server;
 

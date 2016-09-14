@@ -10,14 +10,6 @@ import conquer.core : playerIds;
 /// Packet: AuthLogin - 1051
 final class AuthLogin : NetworkPacket {
   final:
-  private:
-  /// The account.
-  string _account;
-  /// The password.
-  string _password;
-  /// The server.
-  string _server;
-
   /**
   * Creates a new auth login packet.
   * Params:
@@ -26,23 +18,19 @@ final class AuthLogin : NetworkPacket {
   this(ubyte[] buffer) {
     super(buffer);
 
-    _account = readString(16);
+    account = readString(16);
     auto passwordBuffer = readBuffer(16);
-    _password = decryptRc5(passwordBuffer);
-    _server = readString(16);
+    password = decryptRc5(passwordBuffer);
+    server = readString(16);
   }
 
   public:
-  @property {
-    /// Gets the account.
-    auto account() { return _account; }
-
-    /// Gets the password.
-    auto password() { return _password; }
-
-    /// Gets the server.
-    auto server() { return _server; }
-  }
+  /// The account.
+  immutable(string) account;
+  /// The password.
+  immutable(string) password;
+  /// The server.
+  immutable(string) server;
 
   static:
   /**

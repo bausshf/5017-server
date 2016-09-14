@@ -1,5 +1,6 @@
 :: Sets the project name
-SET projectName=conquer-online-5017
+SET projectNameAuth=conquer-online-5017-auth
+SET projectNameWorld=conquer-online-5017-world
 
 :: Removes cached dub application
 if EXIST ".dub" (
@@ -7,8 +8,10 @@ if EXIST ".dub" (
 	rmdir build /q /s
 	mkdir build
 	cd ..
-	erase %projectName%.exe
+	erase %projectNameAuth%.exe
+	erase %projectNameWorld%.exe
 )
 
 ::	Compiles the executable
-dub build
+call dub build --config=auth
+call dub build --config=world

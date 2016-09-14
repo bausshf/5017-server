@@ -219,7 +219,7 @@ class NetworkPacket {
   * Params:
   *   value = The value.
   */
-  void write(T)(T value) {
+  void write(T)(inout(T) value) {
     static if (is(T == bool)) {
       write!ubyte(value ? 1 : 0);
     }
@@ -240,7 +240,7 @@ class NetworkPacket {
   *   value =   The value.
   *   offset =  The offset.
   */
-  void write(T)(T value, size_t offset) {
+  void write(T)(inout(T) value, size_t offset) {
     if (offset >= _buffer.length) {
       throw new OutOfRangeException(_buffer.stringof, offset);
     }
@@ -253,7 +253,7 @@ class NetworkPacket {
   * Params:
   *   buffer = The buffer.
   */
-  void writeBuffer(ubyte[] buffer) {
+  void writeBuffer(inout(ubyte[]) buffer) {
     // TODO: append directly ...
 
     foreach (entry; buffer) {
@@ -267,7 +267,7 @@ class NetworkPacket {
   *   buffer = The buffer.
   *   offset = The offset.
   */
-  void writeBuffer(ubyte[] buffer, size_t offset) {
+  void writeBuffer(inout(ubyte[]) buffer, size_t offset) {
     foreach (entry; buffer) {
       write(entry, offset);
     }
@@ -278,7 +278,7 @@ class NetworkPacket {
   * Params:
   *   value = The value.
   */
-  void writeString(bool isDynamic)(string value) {
+  void writeString(bool isDynamic)(inout(string) value) {
     static if (isDynamic) {
       write(cast(ubyte)value.length);
     }
@@ -293,7 +293,7 @@ class NetworkPacket {
   * Params:
   *   values =  The range of strings.
   */
-  void writeStrings(string[] values) {
+  void writeStrings(inout(string[]) values) {
     write(cast(ubyte)values.length);
 
     foreach (value; values) {
@@ -307,7 +307,7 @@ class NetworkPacket {
   *   value =   The value.
   *   offset =  The offset.
   */
-  void writeString(bool isDynamic)(string value, size_t offset) {
+  void writeString(bool isDynamic)(inout(string) value, size_t offset) {
     static if (isDynamic) {
       write(cast(ubyte)value.length, offset);
       offset++;
@@ -325,7 +325,7 @@ class NetworkPacket {
   *   values =   The range of strings.
   *   offset =  The offset.
   */
-  void writeStrings(string[] values, size_t offset) {
+  void writeStrings(inout(string[]) values, size_t offset) {
     write(cast(ubyte)values.length);
     offset++;
 

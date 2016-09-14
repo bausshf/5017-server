@@ -22,7 +22,7 @@ else version (WORLD_SERVER) {
   /// The port of the world server.
   private shared ushort serverPort = 5816;
 
-  public import conquer.auth.network.gameclient : GameClient;
+  public import conquer.world.network.gameclient : GameClient;
 
   /// Alias for the client.
   public alias Client = GameClient;

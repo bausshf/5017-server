@@ -44,7 +44,7 @@ private {
 		auto derived = getMemberNames!T;
 
 		foreach (i; 0 .. derived.length) {
-			if (derived[i][0] != '_') {
+			if (derived[i][0] != '_') { // We don't want constructors and destructors ...
 				members[i].name = derived[i];
 			}
 		}
@@ -61,6 +61,8 @@ private {
 	mixin template Retrieve(T, MemberInfo[] members) {
 		import std.traits;
 
+    // TODO: make nullable check and not mapped check more generic ...
+
 		/// Gets nullable checks.
 		auto getIsNullable() @safe {
 			auto retrieveString = "enum bool[string] nullableChecks = [";
@@ -75,12 +77,26 @@ private {
 
 		mixin(getIsNullable);
 
+    /// Gets not-mapped checks.
+		auto getIsNotMapped() @safe {
+			auto retrieveString = "enum bool[string] notMappedChecks = [";
+			foreach (member; members) {
+				retrieveString ~= format("\"%s\" : hasUDA!(%s.%s, DbNotMapped),", member.name, T.stringof, member.name);
+			}
+
+			retrieveString.length -= 1;
+
+			return retrieveString ~ "];";
+		}
+
+		mixin(getIsNotMapped);
+
 		/// Gets all retrievements.
 		auto getRetrieves() @safe {
 			string retrieveString;
 
 			foreach (member; members) {
-				if (nullableChecks[member.name]) {
+				if (nullableChecks[member.name] && !notMappedChecks[member.name]) {
 					retrieveString ~= format("model.%s = retrieve!(%s, true);", member.name, member.type);
 				}
 				else {
@@ -100,6 +116,9 @@ private {
 
 /// Attribute for marking a field as db null.
 struct DbNull { }
+
+/// Attribute for not mapping a field.
+struct DbNotMapped { }
 
 /// Interface for database models.
 interface IDatabaseModel { }
